@@ -272,8 +272,8 @@ def main():
     # get mesh
     delta_mesh = FieldMesh(RSDcat.to_mesh(Nmesh=Nmesh, BoxSize=BoxSize, 
                           window='cic', interlaced=False, compensated=False).compute()-1)
-    if RSDcat.comm.rank == 0:
-        print('Mesh: ', get_cstats_string(delta_mesh.compute()))
+    #if RSDcat.comm.rank == 0:
+    #    print('Mesh: ', get_cstats_string(delta_mesh.compute()))
 
     Pdd = calc_power(delta_mesh, los=opts['LOS'], mode='2d', poles=opts['poles'])
 
@@ -288,9 +288,9 @@ def main():
     for smoother in smoothers:
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
-    if RSDcat.comm.rank == 0:        
-        print('delta: ', get_cstats_string(delta_mesh.compute(mode='real')))
-        print('delta smoothed: ', get_cstats_string(delta_mesh_smoothed.compute(mode='real')))
+    #if RSDcat.comm.rank == 0:        
+    #    print('delta: ', get_cstats_string(delta_mesh.compute(mode='real')))
+    #    print('delta smoothed: ', get_cstats_string(delta_mesh_smoothed.compute(mode='real')))
 
     LOS = opts['LOS']
     LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
