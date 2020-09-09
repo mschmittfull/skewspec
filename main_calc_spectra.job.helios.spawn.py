@@ -72,8 +72,8 @@ export OMP_NUM_THREADS=2
 ./run.sh mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g
 
 
-                """ % (nodes, mail_string1, mail_string2, 
-                       tryid, sim_seed, Rsmooth, apply_RSD
+                """ % (nodes, mail_string1, mail_string2,
+                       tryid, sim_seed, Rsmooth, apply_RSD,
                        srun_cores,
                        binfile, sim_seed, Ngrid, boxsize, apply_RSD, Rsmooth))
 
