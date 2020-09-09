@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 
+from collections import OrderedDict
 import numpy as np
 from nbodykit.source.mesh.field import FieldMesh
 
@@ -26,6 +27,14 @@ class LinField(object):
         else:
             linmesh = FieldMesh(dnm.compute(mode=mode))
         return linmesh
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            n=self.n,
+            m=self.m,
+            prefactor=self.prefactor
+            )
 
 
 class QuadField(object):
@@ -66,6 +75,19 @@ class QuadField(object):
                  self.nprimeprime, self.mprimeprime[0], self.mprimeprime[1], self.mprimeprime[2])
             if self.prefactor != 1.0:
                 self.name = '%g %s' % (self.prefactor, self.name) 
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            n=self.n,
+            m=self.m,
+            nprime=self.nprime,
+            mprime=self.mprime,
+            nprimeprime=self.nprimeprime,
+            mprimeprime=self.mprimeprime,
+            composite=self.composite,
+            prefactor=self.prefactor
+            )
 
 
     def compute_from_mesh(self, mesh, second_mesh=None, mode='real'):
@@ -137,6 +159,12 @@ class SumOfQuadFields(object):
                     mode=mode).compute(mode=mode)
         return FieldMesh(out_rfield)
 
+    def to_dict(self):
+        d = dict()
+        for counter, quad_field in enumerate(self.quad_fields):
+            d['quad_field_%d' % counter] = quad_field.to_dict()
+        return d
+
 
 class SkewSpectrumV2(object):
     """
@@ -155,12 +183,14 @@ class SkewSpectrumV2(object):
         self.lin = lin
         self.quad = quad
         self.LOS = LOS
+        self.Pskew = None
 
         if self.lin is None:
             self.lin = LinField()
 
         if self.name is None:
             self.name = '%s_X_%s' % (self.quad.name, self.lin.name)
+
 
     def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
                           power_kwargs={'mode': '2d', 'poles':[0]}):
@@ -182,6 +212,54 @@ class SkewSpectrumV2(object):
 
         return self.Pskew
 
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            lin=self.lin.to_dict(),
+            quad=self.quad.to_dict(),
+            LOS=self.LOS,
+            Pskew=self.Pskew.__getstate__()
+            )
+
+    def save_plaintext(self, filename):
+        poles = self.Pskew.attrs['poles']
+        d = OrderedDict()
+        d['k'] = self.Pskew.poles['k']
+        for ell in poles:
+            d['power_%d'%ell] = self.Pskew.poles['power_%d'%ell].real
+
+        # convert to structured numpy array
+        mydtype = []
+        for k in d.keys():
+            mydtype.append((k,'f8'))
+        arr = np.empty(d['k'].shape, dtype=mydtype)
+        for k, v in d.items():
+            arr[k] = v
+
+        header = 'lin: ' + str(self.lin.to_dict()) + '\n'
+        header += 'quad: ' + str(self.quad.to_dict()) + '\n'
+        header += 'Pskew attrs: ' + str(self.Pskew.attrs) + '\n\n'
+        header += 'Columns: ' + str(arr.dtype.names)
+        np.savetxt(filename, arr, header=header)
+        print('Wrote %s' % filename)
+
+    # def to_json(self, filename=None):
+    #     # Save nbodykit's BinnedStatistic
+    #     #import json
+    #     #from nbodykit.utils import JSONEncoder
+    #     #state = self.to_dict()
+    #     #with open(filename, 'w') as ff:
+    #     #    json.dump(state, ff, cls=JSONEncoder)
+    #     self.Pskew.to_json(filename=filename)
+
+
+    # @classmethod
+    # def from_json(cls, filename=None):
+    #     from nbodykit.binned_statistic import BinnedStatistic
+    #     obj = cls(lin=None, quad=None, LOS=None, name=None)
+    #     obj.Pskew = BinnedStatistic.from_json(filename)
+    #     return obj
+        
 
 
 class SkewSpectrum(object):
