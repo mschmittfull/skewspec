@@ -70,8 +70,8 @@ def main():
     # Parse options
     opts['sim_seed'] = cmd_args.SimSeed
     opts['boxsize'] = cmd_args.boxsize
-    basedir = '/Users/mschmittfull/scratch_data/lss/ms_gadget/run4/00000%d-01536-%.1f-wig/' % (
-        opts['sim_seed'], opts['boxsize'])
+    basedir = os.path.expandvars('$SCRATCH/lss/ms_gadget/run4/00000%d-01536-%.1f-wig/' % (
+        opts['sim_seed'], opts['boxsize']))
     opts['sim_scale_factor'] = 0.625
     opts['Rsmooth'] = cmd_args.Rsmooth
     opts['Ngrid'] = cmd_args.Ngrid
