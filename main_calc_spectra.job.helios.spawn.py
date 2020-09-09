@@ -68,9 +68,17 @@ export OMP_NUM_THREADS=2
 # module load helios
 
 
-# each helios noise has dual 14-core processors (so 28 cores per node?) and 128GB per node
-./run.sh mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g
+tmp_hdf5_use_file_locking=$HDF5_USE_FILE_LOCKING
+export HDF5_USE_FILE_LOCKING=FALSE
+. /home/mschmittfull/anaconda2/etc/profile.d/conda.sh
+conda activate nbodykit-0.3.7-env
 
+
+# each helios noise has dual 14-core processors (so 28 cores per node?) and 128GB per node
+mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g
+
+conda deactivate
+export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
 
                 """ % (nodes, mail_string1, mail_string2,
                        tryid, sim_seed, Rsmooth, apply_RSD,
