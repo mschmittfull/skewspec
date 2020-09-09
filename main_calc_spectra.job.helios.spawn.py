@@ -38,17 +38,17 @@ def main():
         for Rsmooth in Rsmooth_lst:
             for apply_RSD in apply_RSD_lst:
 
-            job_fname = 'main_calc_spectra.job.helios_%s_%d_%g_%d' % (
-                tryid, sim_seed, Rsmooth, apply_RSD)
-            if send_mail:
-                mail_string1 = '#SBATCH --mail-user=mschmittfull@gmail.com'
-                mail_string2 = '#SBATCH --mail-type=ALL'
-            else:
-                mail_string1 = ''
-                mail_string2 = ''
+                job_fname = 'main_calc_spectra.job.helios_%s_%d_%g_%d' % (
+                    tryid, sim_seed, Rsmooth, apply_RSD)
+                if send_mail:
+                    mail_string1 = '#SBATCH --mail-user=mschmittfull@gmail.com'
+                    mail_string2 = '#SBATCH --mail-type=ALL'
+                else:
+                    mail_string1 = ''
+                    mail_string2 = ''
 
-            f = open(job_fname, "w")
-            f.write("""#!/bin/bash -l
+                f = open(job_fname, "w")
+                f.write("""#!/bin/bash -l
 
 #SBATCH -t 12:00:00
 #SBATCH --nodes=%d
