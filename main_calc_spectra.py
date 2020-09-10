@@ -313,6 +313,18 @@ def main():
     s4 = SkewSpectrumV2(
         quad=QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS, prefactor=1.0),
         LOS=LOS, name='S4')
+    s4out = SkewSpectrumV2(
+        quad=QuadField(nprime=-2, mprime=LOS, prefactor=1.0),
+        lin=LinField(m=LOS),
+        LOS=LOS, name='S4')
+    s4alternative = SkewSpectrumV2(
+        quad=QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=1.0),
+        LOS=LOS, name='S4')
+    s4alternative2 = SkewSpectrumV2(
+        quad=SumOfQuadFields(quad_fields=[
+            QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=2.0),
+            QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS, prefactor=1.0)]),
+        LOS=LOS, name='S4')
     # s4sep = SkewSpectrumV2(
     #     quad=QuadField(nprime=-2, mprime=LOS),
     #     lin=LinField(m=LOS),
@@ -366,6 +378,13 @@ def main():
         s14 = SkewSpectrumV2(
             QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=2*LOS),
             LOS=LOS, name='S14')
+
+    # s4test = SkewSpectrumV2(
+    #     QuadField(mprimeprime=LOS), LOS=LOS, name='S4')
+    s4test = SkewSpectrumV2(
+        quad=QuadField(n=-2, m=LOS, prefactor=1.0),
+        LOS=LOS, name='S4')
+
 
 
     # list of skew spectra to compute

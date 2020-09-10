@@ -126,9 +126,11 @@ class QuadField(object):
 
         if (self.nprimeprime!=0) or (not np.all(self.mprimeprime==[0,0,0])):
             # apply external derivative
-            quadmesh = compute_dnm(FieldMesh(quadmesh.compute(mode='complex')), 
+            tmpmesh = FieldMesh(quadmesh.compute(mode='real'))
+            del quadmesh
+            quadmesh = FieldMesh(compute_dnm(tmpmesh, 
                 n=self.nprimeprime, 
-                m=self.mprimeprime)
+                m=self.mprimeprime).compute(mode='real'))
 
         if self.prefactor != 1.0:
             quadmesh = FieldMesh(self.prefactor*quadmesh.compute(mode=mode))
@@ -262,48 +264,48 @@ class SkewSpectrumV2(object):
         
 
 
-class SkewSpectrum(object):
-    """
-    SkewSpectrum class, version 1, depracted -- don't use!
-    """
-    def __init__(self, name=None, smoothing=None,
-                n=0, nprime=0, nprimeprime=0, m=None, mprime=None, mprimeprime=None,
-                 prefactor=1.0,
-                LOS=None):
-        self.name = name
-        self.smoothing = smoothing
-        self.n = n
-        self.nprime = nprime
-        self.nprimeprime = nprimeprime
-        if m is None:
-            m = [0,0,0]
-        if mprime is None:
-            mprime = [0,0,0]
-        if mprimeprime is None:
-            mprimeprime = [0,0,0]
-        self.m = m
-        self.mprime = mprime
-        self.mprimeprime = mprimeprime
-        self.LOS = LOS
-        self.Pskew = None
-        self.prefactor = prefactor
+# class SkewSpectrum(object):
+#     """
+#     SkewSpectrum class, version 1, depracted -- don't use!
+#     """
+#     def __init__(self, name=None, smoothing=None,
+#                 n=0, nprime=0, nprimeprime=0, m=None, mprime=None, mprimeprime=None,
+#                  prefactor=1.0,
+#                 LOS=None):
+#         self.name = name
+#         self.smoothing = smoothing
+#         self.n = n
+#         self.nprime = nprime
+#         self.nprimeprime = nprimeprime
+#         if m is None:
+#             m = [0,0,0]
+#         if mprime is None:
+#             mprime = [0,0,0]
+#         if mprimeprime is None:
+#             mprimeprime = [0,0,0]
+#         self.m = m
+#         self.mprime = mprime
+#         self.mprimeprime = mprimeprime
+#         self.LOS = LOS
+#         self.Pskew = None
+#         self.prefactor = prefactor
 
-    def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
-                          power_kwargs={'mode': '2d', 'poles':[0,2]}):
-        if second_mesh is None:
-            second_mesh = mesh
-        if third_mesh is None:
-            third_mesh = mesh
+#     def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
+#                           power_kwargs={'mode': '2d', 'poles':[0,2]}):
+#         if second_mesh is None:
+#             second_mesh = mesh
+#         if third_mesh is None:
+#             third_mesh = mesh
         
-        quadratic_mesh = compute_dnm_dnmprime(
-            mesh, mesh_prime=second_mesh, 
-            n=self.n, nprime=self.nprime, m=self.m, mprime=self.mprime)
+#         quadratic_mesh = compute_dnm_dnmprime(
+#             mesh, mesh_prime=second_mesh, 
+#             n=self.n, nprime=self.nprime, m=self.m, mprime=self.mprime)
         
-        linear_mesh = compute_dnm(third_mesh, n=self.nprimeprime, m=self.mprimeprime, 
-                                        prefactor=self.prefactor)
+#         linear_mesh = compute_dnm(third_mesh, n=self.nprimeprime, m=self.mprimeprime, 
+#                                         prefactor=self.prefactor)
         
-        self.Pskew = calc_power(quadratic_mesh, second=linear_mesh, los=self.LOS, **power_kwargs)
-        return self.Pskew
+#         self.Pskew = calc_power(quadratic_mesh, second=linear_mesh, los=self.LOS, **power_kwargs)
+#         return self.Pskew
         
         
 def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real'):
