@@ -80,7 +80,7 @@ def main():
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
-    opts['outdir'] = '../data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d/' % (
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d/' % (
         opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
         int(opts['APPLY_RSD']))
 
