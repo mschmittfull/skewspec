@@ -10,17 +10,17 @@ def main():
     tryid = 'RunA1'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
-    #sim_seeds = range(400,406)
-    sim_seeds = [400]
+    sim_seeds = range(400,406)
+    #sim_seeds = [400]
 
-    apply_RSD_lst = [0]
-    Rsmooth_lst = [10.0]
+    apply_RSD_lst = [0,1]
+    Rsmooth_lst = [10.0,20.0]
 
     # simulation boxsize
     boxsize = 1500.0
 
     # Ngrid to compute Perr (usually 512 or 1536)
-    Ngrid = 64
+    Ngrid = 512
 
     # number of nodes to run on
     if Ngrid>1024:
@@ -92,7 +92,7 @@ export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
                     print("Submit %s" % job_fname)
                     os.system("sbatch %s" % job_fname)
                     print("Sleep...")
-                    os.system("sleep 2")
+                    os.system("sleep 1")
                 # do not send more than 1 email
                 send_mail = False
 
