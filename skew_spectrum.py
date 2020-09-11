@@ -321,21 +321,21 @@ def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real',
                 kk = np.sqrt(sum(ki**2 for ki in k3vec))  # |k| on the mesh
                 if n<0:
                     kk[kk == 0] = 1
-                return prefactor * kk**n * val
+                return prefactor * (1j*kk)**n * val
 
     elif m[0]==0 and m[1]==0 and m[2]!=0:
         def filter_fcn(k3vec, val, n=n, m=m):
             kk = np.sqrt(sum(ki**2 for ki in k3vec))  # |k| on the mesh
             if n<0:
                 kk[kk == 0] = 1
-            return prefactor * kk**n * k3vec[2]**(m[2]) * val
+            return prefactor * (1j*kk)**n * (1j*k3vec[2])**(m[2]) * val
     
     else:
         def filter_fcn(k3vec, val, n=n, m=m):
             kk = np.sqrt(sum(ki**2 for ki in k3vec))  # |k| on the mesh
             if n<0:
                 kk[kk == 0] = 1
-            return prefactor * kk**n * k3vec[0]**(m[0]) * k3vec[1]**(m[1]) * k3vec[2]**(m[2]) * val
+            return prefactor * (1j*kk)**n * (1j*k3vec[0])**(m[0]) * (1j*k3vec[1])**(m[1]) * (1j*k3vec[2])**(m[2]) * val
 
     out_mesh = FieldMesh(mesh.compute(mode='complex'))
     dnm = out_mesh.apply(filter_fcn, mode='complex', kind='wavenumber').compute(mode=mode)
@@ -413,7 +413,7 @@ def calc_power(mesh, second=None, mode='1d', k_bin_width=1.0, verbose=False, los
                             dk=dk,
                             kmin=kmin,
                             poles=poles,
-                            Nmu=5,
+                            Nmu=10,
                             los=los)
     else:
         raise Exception("Mode not implemented: %s" % mode)
