@@ -7,7 +7,7 @@ def main():
     ## OPTIONS
     do_submit = True
 
-    tryid = 'RunA2'
+    tryid = 'RunA3'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
     sim_seeds = range(400,406)
