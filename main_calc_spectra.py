@@ -330,8 +330,9 @@ def main():
     #     lin=LinField(m=LOS),
     #     LOS=LOS, name='S4sep')
 
+    # added factor of 2 on 11 sep 2020
     s5 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(composite='F2', nprime=-2, mprime=2*LOS),
+        QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
         QuadField(composite='velocity_G2_par_%s' % LOS_string)
     ]), LOS=LOS, name='S5')
     s6 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
