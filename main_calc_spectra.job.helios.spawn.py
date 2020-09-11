@@ -20,7 +20,7 @@ def main():
     boxsize = 1500.0
 
     # Ngrid to compute Perr (usually 512 or 1536)
-    Ngrid = 512
+    Ngrid = 1024
 
     # number of nodes to run on
     if Ngrid>1024:
