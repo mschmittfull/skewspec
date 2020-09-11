@@ -308,7 +308,8 @@ class SkewSpectrumV2(object):
 #         return self.Pskew
         
         
-def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real'):
+def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real',
+    subtract_mean=True):
     
     # last case is most general. define simpler cases separately for speedup.
     if m[0]==0 and m[1]==0 and m[2]==0:
@@ -338,6 +339,14 @@ def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real'):
 
     out_mesh = FieldMesh(mesh.compute(mode='complex'))
     dnm = out_mesh.apply(filter_fcn, mode='complex', kind='wavenumber').compute(mode=mode)
+
+    if subtract_mean:
+        if mode=='real':
+            mymean = dnm.cmean()
+            dnm -= mymean
+        elif mode=='complex':
+            raise Exception('not implemented')
+
     del filter_fcn
 
     if verbose:
@@ -345,8 +354,10 @@ def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real'):
 
     return FieldMesh(dnm)
 
+
 def compute_dnm_dnmprime(mesh, mesh_prime=None,
                      n=None, nprime=None, m=None, mprime=None, verbose=True,
+                     subtract_mean=True
                      ):
     """
     Parameters
@@ -362,6 +373,10 @@ def compute_dnm_dnmprime(mesh, mesh_prime=None,
     dnm_x_prime = compute_dnm(mesh_prime, nprime, mprime, verbose=True).compute(mode='real')
 
     out_rfield = dnm_x * dnm_x_prime
+
+    if subtract_mean:
+        mymean = out_rfield.cmean()
+        out_rfield -= mymean
 
     if verbose:
         print('d_%d^%d%d%d: ' % (n, m[0], m[1], m[2]), get_cstats_string(dnm_x))
