@@ -430,6 +430,17 @@ def main():
             np.savetxt(fname, arr, header=header)
             print('Wrote %s' % fname)
 
+        # also store density power
+        for ell in Pdd.attrs['poles']:
+            mydtype = [('k', 'f8'), ('P', 'f8')]
+            arr = np.empty(shape=Pdd.poles['k'].shape, dtype=mydtype)
+            arr['k'] = Pdd.poles['k']
+            arr['P'] = Pdd.poles['power_%d'%ell].real
+            fname = os.path.join(opts['outdir'], 'P_ell%d.txt'%ell)
+            header = 'Columns: ' + str(arr.dtype.names)
+            np.savetxt(fname, arr, header=header)
+            print('Wrote %s' % fname)
+
 
 
 
