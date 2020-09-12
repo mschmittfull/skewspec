@@ -13,14 +13,14 @@ def main():
     sim_seeds = range(400,406)
     #sim_seeds = [400]
 
-    apply_RSD_lst = [1]
-    Rsmooth_lst = [10.0, 20.0]
+    apply_RSD_lst = [0,1]
+    Rsmooth_lst = [30.0]
 
     # simulation boxsize
     boxsize = 1500.0
 
     # Ngrid to compute Perr (usually 512 or 1536)
-    Ngrid = 1024
+    Ngrid = 512
 
     # number of nodes to run on
     if Ngrid>1024:
