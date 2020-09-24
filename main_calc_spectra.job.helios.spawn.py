@@ -10,11 +10,11 @@ def main():
     tryid = 'RunA4'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
-    #sim_seeds = range(400,406)
-    sim_seeds = [400]
+    sim_seeds = range(400,406)
+    #sim_seeds = [400]
 
     apply_RSD_lst = [0,1]
-    Rsmooth_lst = [20.0]
+    Rsmooth_lst = [10.0, 20.0, 30.0]
 
     # simulation boxsize
     boxsize = 1500.0
@@ -22,8 +22,8 @@ def main():
     # Ngrid to compute Perr (usually 512 or 1536)
     Ngrid = 512
 
-    # DM subsample ratio
-    subsample_ratio_lst = [1.0]
+    # DM subsample ratio. For L=1500: 0.04, 0.0015
+    subsample_ratio_lst = [0.04]
 
     # number of nodes to run on
     if Ngrid>1024:
