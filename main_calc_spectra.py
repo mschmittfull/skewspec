@@ -57,6 +57,10 @@ def main():
                     type=int,
                     help='Ngrid used to compute skew spectra.')
 
+    ap.add_argument('--SubsampleRatio',
+                    default=0.0015,
+                    type=float,
+                    help='Subsample ratio of DM snapshot to use as input.')
 
     cmd_args = ap.parse_args()
 
@@ -77,12 +81,13 @@ def main():
     opts['Ngrid'] = cmd_args.Ngrid
     opts['LOS'] = np.array([0,0,1])
     opts['APPLY_RSD'] = bool(cmd_args.ApplyRSD)
+    opts['subsample_ratio'] = cmd_args.SubsampleRatio
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
-    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d/' % (
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g/' % (
         opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
-        int(opts['APPLY_RSD']))
+        int(opts['APPLY_RSD']), opts['subsample_ratio'])
 
     # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
     opts['positions_catalog'] = 'DM_subsample'
@@ -110,22 +115,32 @@ def main():
 
     ## Target catalogs
     # DM subsample
-    DM_subsample = Target(
-        name='DM_subsample',
-        in_fname=os.path.join(basedir, 'snap_%.4f_sub_sr0.0015_ssseed40%d.bigfile' % (
-            opts['sim_scale_factor'], opts['sim_seed'])),
-        position_column='Position'
-    )
+    if opts['subsample_ratio'] != 1.0:
+        DM_subsample = Target(
+            name='DM_subsample',
+            in_fname=os.path.join(basedir, 'snap_%.4f_sub_sr%g_ssseed40%d.bigfile' % (
+                opts['sim_scale_factor'], opts['subsample_ratio'], opts['sim_seed'])),
+            position_column='Position'
+        )
+    else:
+        # full DM sample
+        DM_subsample = Target(
+            name='DM_subsample',
+            in_fname=os.path.join(basedir, 'snap_%.4f' % (
+                opts['sim_scale_factor'])),
+            position_column='Position'
+        )
 
-    DM_D2 = Target(
-        name='DM_D2',
-        in_fname=os.path.join(basedir, 'snap_%.4f_sub_sr0.0015_ssseed40%d.bigfile' % (
-            opts['sim_scale_factor'], opts['sim_seed'])),
-        position_column='Position',
-        val_column='Velocity',
-        val_component=2,
-        rescale_factor='RSDFactor'
-    )
+
+    # DM_D2 = Target(
+    #     name='DM_D2',
+    #     in_fname=os.path.join(basedir, 'snap_%.4f_sub_sr0.0015_ssseed40%d.bigfile' % (
+    #         opts['sim_scale_factor'], opts['sim_seed'])),
+    #     position_column='Position',
+    #     val_column='Velocity',
+    #     val_component=2,
+    #     rescale_factor='RSDFactor'
+    # )
 
     if False:
         # PT Challenge galaxies from rockstar halos. Rockstar gives core positions and velocities.
