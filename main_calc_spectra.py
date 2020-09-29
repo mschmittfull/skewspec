@@ -144,8 +144,8 @@ def main():
     Nmesh = opts['Ngrid']
     BoxSize = np.array([opts['boxsize'], opts['boxsize'], opts['boxsize']])
     comm = CurrentMPIComm.get()
-
-
+    LOS = opts['LOS']
+    LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
 
 
     # Below, 'D' stands for RSD displacement in Mpc/h: D=v/(aH)=f*PsiDot.
@@ -247,6 +247,8 @@ def main():
 
     if opts['density_source'] == 'delta_2SPT':
         # compute 2nd order density from linear mesh
+        if comm.rank == 0:
+            print('Warning: Not smoothing when generating 2nd order field')
 
         if not opts['APPLY_RSD']:
             # Compute delta1 + F2[delta1]
@@ -255,7 +257,28 @@ def main():
                 + QuadField(composite='F2').compute_from_mesh(deltalin.get_mesh()).compute(mode='real')
                 )
         else:
-            raise Exception('todo')
+            # compute 2nd order density in redshift space
+            b1, b2, bG2 = 1.0, 0.0, 0.0
+            f = opts['f_log_growth']
+            delta_mesh = FieldMesh(
+                b1 * deltalin.get_mesh().compute()
+                + f * LinField(m=2*LOS, n=-2).compute_from_mesh(deltalin.get_mesh()).compute()
+                + b1 * QuadField(composite='F2').compute_from_mesh(deltalin.get_mesh()).compute()
+                + f * QuadField(composite=('velocity_G2_par_%s' % LOS_string)).compute_from_mesh(deltalin.get_mesh()).compute(mode='real')
+                - b1 * f * QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
+                - f**2 * QuadField(n=-2, m=2*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
+            )
+
+            if b2 != 0.:
+                delta_mesh = FieldMesh(
+                    delta_mesh.compute()
+                    + b2/2.0 * QuadField().compute_from_mesh(deltalin.get_mesh()).compute())
+
+            if bG2 != 0.0:
+                delta_mesh = FieldMesh(
+                    delta_mesh.compute()
+                    + bG2 * QuadField(composite='tidal_G2').compute_from_mesh(deltalin.get_mesh()).compute())
+
 
 
 
@@ -400,8 +423,7 @@ def main():
     #    print('delta: ', get_cstats_string(delta_mesh.compute(mode='real')))
     #    print('delta smoothed: ', get_cstats_string(delta_mesh_smoothed.compute(mode='real')))
 
-    LOS = opts['LOS']
-    LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
+    
 
 
     # Define skew spectra. default n=n'=0 and m=m'=[0,0,0].

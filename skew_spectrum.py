@@ -91,6 +91,8 @@ class QuadField(object):
 
 
     def compute_from_mesh(self, mesh, second_mesh=None, mode='real'):
+        if second_mesh is None:
+            second_mesh = FieldMesh(mesh.compute(mode=mode))
         if self.composite is None:
             quadmesh = compute_dnm_dnmprime(
                 mesh, mesh_prime=second_mesh, 
