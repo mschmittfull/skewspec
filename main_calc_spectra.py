@@ -237,10 +237,12 @@ def main():
         assert np.all(opts['LOS'] == np.array([0,0,1]))
         mtp = ModelTargetPair(model=deltalin_D2, target=DM_subsample)
         cat['RSDPosition'] = cat['Position'].compute()
-        mat = np.zeros((cat.csize,3))
-        mat[:,0] = 0*mat[:,0]
-        mat[:,1] = 0*mat[:,0]
-        mat[:,2] = mtp.readout_model_at_target_pos()
+
+        # read out model at each catalog position on current rank.
+        model_at_target_pos = mtp.readout_model_at_target_pos()
+        mat = np.zeros((model_at_target_pos.size,3))
+        assert np.all(opts['LOS'] == np.array([0,0,1]))
+        mat[:,2] = model_at_target_pos
         cat['RSDPosition'] += mat
 
         if opts['velocity_source'] == 'deltalin_D2_SPT2':
