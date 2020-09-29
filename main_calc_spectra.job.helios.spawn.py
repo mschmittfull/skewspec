@@ -25,6 +25,8 @@ def main():
     # DM subsample ratio. For L=1500: 0.04, 0.0015
     subsample_ratio_lst = [0.04]
 
+    max_displacement = 10.0
+
     # number of nodes to run on
     if Ngrid>1024:
         nodes = 32
@@ -79,7 +81,7 @@ conda activate nbodykit-0.3.7-env
 
 
 # each helios noise has dual 14-core processors (so 28 cores per node?) and 128GB per node
-mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g --SubsampleRatio %g
+mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g --SubsampleRatio %g --MaxDisplacement %g
 
 conda deactivate
 export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
@@ -87,7 +89,8 @@ export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
                 """ % (nodes, mail_string1, mail_string2,
                        tryid, sim_seed, Rsmooth, apply_RSD,
                        srun_cores,
-                       binfile, sim_seed, Ngrid, boxsize, apply_RSD, Rsmooth, subsample_ratio))
+                       binfile, sim_seed, Ngrid, boxsize, apply_RSD, Rsmooth, 
+                       subsample_ratio, max_displacement))
 
                     f.close()
                     print("Wrote %s" % job_fname)

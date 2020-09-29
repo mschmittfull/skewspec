@@ -62,6 +62,11 @@ def main():
                     type=float,
                     help='Subsample ratio of DM snapshot to use as input.')
 
+    ap.add_argument('--MaxDisplacement',
+                default=100.0,
+                type=float,
+                help='Maximum RSD displacement in Mpc/h.')
+
     cmd_args = ap.parse_args()
 
     #####################################
@@ -82,17 +87,20 @@ def main():
     opts['LOS'] = np.array([0,0,1])
     opts['APPLY_RSD'] = bool(cmd_args.ApplyRSD)
     opts['subsample_ratio'] = cmd_args.SubsampleRatio
+    opts['max_displacement'] = cmd_args.MaxDisplacement
+
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
     # Velocity source: DM_sim, deltalin_D2, deltalin_D2_SPT2
-    opts['velocity_source'] = 'deltalin_D2'
+    opts['velocity_source'] = 'DM_sim'
 
 
     # where to save output
-    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g_v%s/' % (
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g_v%s_MD%g/' % (
         opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
-        int(opts['APPLY_RSD']), opts['subsample_ratio'], opts['velocity_source'])
+        int(opts['APPLY_RSD']), opts['subsample_ratio'], opts['velocity_source'],
+        opts['max_displacement'])
 
     # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
     opts['positions_catalog'] = 'DM_subsample'
@@ -227,7 +235,17 @@ def main():
     # add redshift space positions, assuming LOS is in z direction
     if opts['velocity_source'] == 'DM_sim':
         # use DM velocity
-        cat['RSDPosition'] = cat['Position'] + cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
+        displacement = cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
+        displacement = displacement.compute()
+        if opts['max_displacement'] is not None:
+            ww = np.where(np.linalg.norm(displacement, axis=1)>opts['max_displacement'])[0]
+            print(r'%d: max_displacement=%g. Set velocity to 0 for %g percent of particles' % (
+                cat.comm.rank, opts['max_displacement'], 100.*float(len(ww)/displacement.shape[0])))
+            displacement[ww,0] *= 0
+            displacement[ww,1] *= 0
+            displacement[ww,2] *= 0
+        cat['RSDPosition'] = cat['Position'] + displacement
+
 
     elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_SPT2']:
 
@@ -244,6 +262,7 @@ def main():
         assert np.all(opts['LOS'] == np.array([0,0,1]))
         mat[:,2] = model_at_target_pos
         cat['RSDPosition'] += mat
+
 
         if opts['velocity_source'] == 'deltalin_D2_SPT2':
             # add 2nd order G2 contribution to velocity
@@ -430,8 +449,8 @@ def main():
 
     # list of skew spectra to compute
     power_kwargs={'mode': '2d', 'poles': opts['poles']}
-    #skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
-    skew_spectra = []
+    skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
+    #skew_spectra = []
 
 
     # compute skew spectra
