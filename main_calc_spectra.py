@@ -85,15 +85,18 @@ def main():
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
-    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g/' % (
+    # Velocity source: DM_sim, deltalin_D2, deltalin_D2_SPT2
+    opts['velocity_source'] = 'deltalin_D2'
+
+
+    # where to save output
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g_v%s/' % (
         opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
-        int(opts['APPLY_RSD']), opts['subsample_ratio'])
+        int(opts['APPLY_RSD']), opts['subsample_ratio'], opts['velocity_source'])
 
     # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
     opts['positions_catalog'] = 'DM_subsample'
 
-    # Velocity source: DM_sim, deltalin_D2, deltalin_D2_2ndorderSPT
-    opts['velocity_source'] = 'deltalin_D2'
 
 
     # cosmology of ms_gadget sims (to compute D_lin(z))
@@ -226,7 +229,7 @@ def main():
         # use DM velocity
         cat['RSDPosition'] = cat['Position'] + cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
 
-    elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_2ndorderSPT']:
+    elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_SPT2']:
 
         if opts['velocity_source'] == 'deltalin_D2':
             print('Warning: linear velocity does not have 2nd order G2 velocity, so expect wrong bispectrum')
@@ -240,7 +243,7 @@ def main():
         mat[:,2] = mtp.readout_model_at_target_pos()
         cat['RSDPosition'] += mat
 
-        if opts['velocity_source'] == 'deltalin_D2_2ndorderSPT':
+        if opts['velocity_source'] == 'deltalin_D2_SPT2':
             # add 2nd order G2 contribution to velocity
             raise Exception('todo')
 
