@@ -5,6 +5,7 @@ import numpy as np
 import os
 
 from nbodykit.lab import FFTPower, FieldMesh
+from nbodykit import CurrentMPIComm
 
 from lsstools.cosmo_model import CosmoModel
 from lsstools.gen_cosmo_fcns import calc_f_log_growth_rate, generate_calc_Da
@@ -92,18 +93,34 @@ def main():
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
-    # Velocity source: DM_sim, deltalin_D2, deltalin_D2_SPT2
-    opts['velocity_source'] = 'DM_sim'
+    # Source from which to compute density: 'cat' or 'delta_2SPT'
+    opts['density_source'] = 'delta_2SPT'
+
+    if opts['density_source'] == 'catalog':
+        # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
+        opts['positions_catalog'] = 'DM_subsample'
+        # Velocity source: DM_sim, deltalin_D2, deltalin_D2_2SPT
+        opts['velocity_source'] = 'DM_sim'
+
+    elif opts['density_source'] == 'delta2_from_linear_mesh':
+        opts['positions_catalog'] = None
+        opts['velocity_source'] = None
 
 
     # where to save output
-    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d_sr%g_v%s_MD%g/' % (
-        opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
-        int(opts['APPLY_RSD']), opts['subsample_ratio'], opts['velocity_source'],
-        opts['max_displacement'])
+    DS_string = '_DS%s' % opts['density_source']
+    if opts['density_source'] == 'cat':
+        sr_string = '_sr%g' % opts['subsample_ratio']
+        vel_string = '_v%s' % opts['velocity_source']
+        MD_string = '_MD%g' % opts['max_displacement']
+    else:
+        sr_string, vel_string, MD_string = '', '', ''
 
-    # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
-    opts['positions_catalog'] = 'DM_subsample'
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d%s%s%s%s/' % (
+        opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
+        int(opts['APPLY_RSD']), 
+        DS_string, sr_string, vel_string, MD_string)
+
 
 
 
@@ -121,10 +138,21 @@ def main():
     opts['f_log_growth'] = np.sqrt(0.61826)
 
 
+    # ###########################
+    # START PROGRAM
+    # ###########################
+    Nmesh = opts['Ngrid']
+    BoxSize = np.array([opts['boxsize'], opts['boxsize'], opts['boxsize']])
+    comm = CurrentMPIComm.get()
+
+
+
 
     # Below, 'D' stands for RSD displacement in Mpc/h: D=v/(aH)=f*PsiDot.
 
-    ## Target catalogs
+
+    ### Catalogs
+
     # DM subsample
     if opts['subsample_ratio'] != 1.0:
         DM_subsample = Target(
@@ -180,7 +208,9 @@ def main():
             )
 
 
-    ### Models for density
+    ### Densities
+
+    # Linear density
     z_rescalefac = linear_rescale_fac(current_scale_factor=1.0,
                                       desired_scale_factor=opts['sim_scale_factor'],
                                       cosmo_params=opts['cosmo_params'])
@@ -215,77 +245,103 @@ def main():
         readout_window='cic')
         
 
+    if opts['density_source'] == 'delta_2SPT':
+        # compute 2nd order density from linear mesh
 
-
-    ##########################################################################
-    # Get DM catalog in redshift space (if APPLY_RSD==True) 
-    ##########################################################################
-
-    # get the catalog
-    if opts['positions_catalog'] == 'gal_ptchall_with_RSD':
-        target = gal_ptchall_with_RSD
-    elif opts['positions_catalog'] == 'DM_subsample':
-        target = DM_subsample
-    cat = target.get_catalog(keep_all_columns=True)
-    
-    if cat.comm.rank == 0:
-        print('Positions catalog:')
-        print(cat.attrs)
-
-    # add redshift space positions, assuming LOS is in z direction
-    if opts['velocity_source'] == 'DM_sim':
-        # use DM velocity
-        displacement = cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
-        displacement = displacement.compute()
-        if opts['max_displacement'] is not None:
-            ww = np.where(np.linalg.norm(displacement, axis=1)>opts['max_displacement'])[0]
-            print(r'%d: max_displacement=%g. Set velocity to 0 for %g percent of particles' % (
-                cat.comm.rank, opts['max_displacement'], 100.*float(len(ww)/displacement.shape[0])))
-            displacement[ww,0] *= 0
-            displacement[ww,1] *= 0
-            displacement[ww,2] *= 0
-        cat['RSDPosition'] = cat['Position'] + displacement
-
-
-    elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_SPT2']:
-
-        if opts['velocity_source'] == 'deltalin_D2':
-            print('Warning: linear velocity does not have 2nd order G2 velocity, so expect wrong bispectrum')
-    
-        assert np.all(opts['LOS'] == np.array([0,0,1]))
-        mtp = ModelTargetPair(model=deltalin_D2, target=DM_subsample)
-        cat['RSDPosition'] = cat['Position'].compute()
-
-        # read out model at each catalog position on current rank.
-        model_at_target_pos = mtp.readout_model_at_target_pos()
-        mat = np.zeros((model_at_target_pos.size,3))
-        assert np.all(opts['LOS'] == np.array([0,0,1]))
-        mat[:,2] = model_at_target_pos
-        cat['RSDPosition'] += mat
-
-
-        if opts['velocity_source'] == 'deltalin_D2_SPT2':
-            # add 2nd order G2 contribution to velocity
+        if not opts['APPLY_RSD']:
+            # Compute delta1 + F2[delta1]
+            delta_mesh = FieldMesh(
+                deltalin.get_mesh().compute()
+                + QuadField(composite='F2').compute_from_mesh(deltalin.get_mesh()).compute(mode='real')
+                )
+        else:
             raise Exception('todo')
 
-    else:
-        raise Exception('Invalid velocity_source: %s' % str(opts['velocity_source']))
-        
-    if cat.comm.rank == 0:
-        print('rms RSD displacement: %g Mpc/h' % np.mean((cat['Position'].compute()-cat['RSDPosition'].compute())**2)**0.5)
-        print('max RSD displacement: %g Mpc/h' % np.max(np.abs(cat['Position'].compute()-cat['RSDPosition'].compute())))
-    
 
-    # Get redshift space catalog
-    RSDcat = catalog_persist(cat, columns=['ID','PID','Position','RSDPosition','Velocity', 'log10Mvir'])
-    del cat
-    if opts['APPLY_RSD']:
-        if RSDcat.comm.rank == 0:
-            print('Applying RSD')
-        RSDcat['Position'] = RSDcat['RSDPosition']
+
+    elif opts['density_source'] == 'catalog':
+
+        ##########################################################################
+        # Get DM catalog in redshift space (if APPLY_RSD==True) 
+        ##########################################################################
+
+        # get the catalog
+        if opts['positions_catalog'] == 'gal_ptchall_with_RSD':
+            target = gal_ptchall_with_RSD
+        elif opts['positions_catalog'] == 'DM_subsample':
+            target = DM_subsample
+        cat = target.get_catalog(keep_all_columns=True)
+        
+        if comm.rank == 0:
+            print('Positions catalog:')
+            print(cat.attrs)
+
+        # add redshift space positions, assuming LOS is in z direction
+        if opts['velocity_source'] == 'DM_sim':
+            # use DM velocity
+            displacement = cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
+            displacement = displacement.compute()
+            if opts['max_displacement'] is not None:
+                ww = np.where(np.linalg.norm(displacement, axis=1)>opts['max_displacement'])[0]
+                print(r'%d: max_displacement=%g. Set velocity to 0 for %g percent of particles' % (
+                    comm.rank, opts['max_displacement'], 100.*float(len(ww)/displacement.shape[0])))
+                displacement[ww,0] *= 0
+                displacement[ww,1] *= 0
+                displacement[ww,2] *= 0
+            cat['RSDPosition'] = cat['Position'] + displacement
+
+
+        elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_2SPT']:
+
+            if opts['velocity_source'] == 'deltalin_D2':
+                print('Warning: linear velocity does not have 2nd order G2 velocity, so expect wrong bispectrum')
+        
+            assert np.all(opts['LOS'] == np.array([0,0,1]))
+            mtp = ModelTargetPair(model=deltalin_D2, target=DM_subsample)
+            cat['RSDPosition'] = cat['Position'].compute()
+
+            # read out model at each catalog position on current rank.
+            model_at_target_pos = mtp.readout_model_at_target_pos()
+            mat = np.zeros((model_at_target_pos.size,3))
+            assert np.all(opts['LOS'] == np.array([0,0,1]))
+            mat[:,2] = model_at_target_pos
+            cat['RSDPosition'] += mat
+
+
+            if opts['velocity_source'] == 'deltalin_D2_2SPT':
+                # add 2nd order G2 contribution to velocity
+                raise Exception('todo')
+
+        else:
+            raise Exception('Invalid velocity_source: %s' % str(opts['velocity_source']))
+            
+        if comm.rank == 0:
+            print('rms RSD displacement: %g Mpc/h' % np.mean((cat['Position'].compute()-cat['RSDPosition'].compute())**2)**0.5)
+            print('max RSD displacement: %g Mpc/h' % np.max(np.abs(cat['Position'].compute()-cat['RSDPosition'].compute())))
+        
+
+        # Get redshift space catalog
+        RSDcat = catalog_persist(cat, columns=['ID','PID','Position','RSDPosition','Velocity', 'log10Mvir'])
+        del cat
+        if opts['APPLY_RSD']:
+            if comm.rank == 0:
+                print('Applying RSD')
+            RSDcat['Position'] = RSDcat['RSDPosition']
+        else:
+            if comm.rank == 0:
+                print('Not applying RSD')
+
+        # paint to mesh
+        delta_mesh = FieldMesh(RSDcat.to_mesh(Nmesh=Nmesh, BoxSize=BoxSize, 
+                    window='cic', interlaced=False, compensated=False).compute()-1)
+
+        if comm.rank == 0:
+           print('# objects: Original: %d' % (RSDcat.csize))
+
+
     else:
-        if RSDcat.comm.rank == 0:
-            print('Not applying RSD')
+        raise Exception('Invalid density_source %s' % opts['density_source'])
+
 
 
     ##########################################################################
@@ -322,18 +378,11 @@ def main():
         return res
 
 
-    ## Compute density power spectrum 
-    Nmesh = opts['Ngrid']
-    BoxSize = np.array([opts['boxsize'], opts['boxsize'], opts['boxsize']])
-    if RSDcat.comm.rank == 0:
-        print('# objects: Original: %d' % (RSDcat.csize))
 
-    # get mesh
-    delta_mesh = FieldMesh(RSDcat.to_mesh(Nmesh=Nmesh, BoxSize=BoxSize, 
-                          window='cic', interlaced=False, compensated=False).compute()-1)
-    #if RSDcat.comm.rank == 0:
+    #if comm.rank == 0:
     #    print('Mesh: ', get_cstats_string(delta_mesh.compute()))
 
+    ## Compute density power spectrum 
     Pdd = calc_power(delta_mesh, los=opts['LOS'], mode='2d', poles=opts['poles'])
 
 
@@ -347,7 +396,7 @@ def main():
     for smoother in smoothers:
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
-    #if RSDcat.comm.rank == 0:        
+    #if comm.rank == 0:        
     #    print('delta: ', get_cstats_string(delta_mesh.compute(mode='real')))
     #    print('delta smoothed: ', get_cstats_string(delta_mesh_smoothed.compute(mode='real')))
 
@@ -460,7 +509,7 @@ def main():
 
 
     # store in individual files
-    if RSDcat.comm.rank == 0:
+    if comm.rank == 0:
         if not os.path.exists(opts['outdir']):
             os.makedirs(opts['outdir'])
 
