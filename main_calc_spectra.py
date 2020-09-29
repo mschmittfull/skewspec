@@ -48,12 +48,12 @@ def main():
                     help='0: No RSD. 1: Include RSD in catalog.')
 
     ap.add_argument('--Rsmooth',
-                    default=10.0,
+                    default=20.0,
                     type=float,
                     help='Smoothing of quad field.')
 
     ap.add_argument('--Ngrid', 
-                    default=32, 
+                    default=64, 
                     type=int,
                     help='Ngrid used to compute skew spectra.')
 
@@ -92,8 +92,8 @@ def main():
     # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
     opts['positions_catalog'] = 'DM_subsample'
 
-    #opts['velocity_source'] = 'deltalin_D2'
-    opts['velocity_source'] = 'DM_sim'
+    # Velocity source: DM_sim, deltalin_D2, deltalin_D2_2ndorderSPT
+    opts['velocity_source'] = 'deltalin_D2'
 
 
     # cosmology of ms_gadget sims (to compute D_lin(z))
@@ -194,6 +194,15 @@ def main():
         filters=[k2ovksq_filter_fcn],
         readout_window='cic')
 
+    # 2nd order SPT displacement: ik/k^2*G2
+    deltalin_D2_2ndorderSPTcontri = Model(
+        name='deltalin_D2_2ndorderSPTcontri',
+        in_fname=os.path.join(basedir, 'IC_LinearMesh_z0_Ng%d' % opts['Ngrid']),
+        rescale_factor=opts['f_log_growth']*z_rescalefac,
+        read_mode='delta from 1+delta',
+        filters=[k2ovksq_filter_fcn],
+        readout_window='cic')
+        
 
 
 
@@ -217,8 +226,11 @@ def main():
         # use DM velocity
         cat['RSDPosition'] = cat['Position'] + cat['Velocity']*cat.attrs['RSDFactor'] * opts['LOS']
 
-    elif opts['velocity_source'] == 'deltalin_D2':
-        raise Exception('Should not use linear velocity b/c it will not have 2nd order G2 velocity')
+    elif opts['velocity_source'] in ['deltalin_D2', 'deltalin_D2_2ndorderSPT']:
+
+        if opts['velocity_source'] == 'deltalin_D2':
+            print('Warning: linear velocity does not have 2nd order G2 velocity, so expect wrong bispectrum')
+    
         assert np.all(opts['LOS'] == np.array([0,0,1]))
         mtp = ModelTargetPair(model=deltalin_D2, target=DM_subsample)
         cat['RSDPosition'] = cat['Position'].compute()
@@ -227,11 +239,19 @@ def main():
         mat[:,1] = 0*mat[:,0]
         mat[:,2] = mtp.readout_model_at_target_pos()
         cat['RSDPosition'] += mat
+
+        if opts['velocity_source'] == 'deltalin_D2_2ndorderSPT':
+            # add 2nd order G2 contribution to velocity
+            raise Exception('todo')
+
+    else:
+        raise Exception('Invalid velocity_source: %s' % str(opts['velocity_source']))
         
     if cat.comm.rank == 0:
         print('rms RSD displacement: %g Mpc/h' % np.mean((cat['Position'].compute()-cat['RSDPosition'].compute())**2)**0.5)
         print('max RSD displacement: %g Mpc/h' % np.max(np.abs(cat['Position'].compute()-cat['RSDPosition'].compute())))
-        
+    
+
     # Get redshift space catalog
     RSDcat = catalog_persist(cat, columns=['ID','PID','Position','RSDPosition','Velocity', 'log10Mvir'])
     del cat
