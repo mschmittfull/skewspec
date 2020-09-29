@@ -456,18 +456,19 @@ def main():
                 print('Wrote %s' % fname)
             
         # store all in one file for each multipole
-        for ell in skew_spec.Pskew.attrs['poles']:
-            mydtype = [('k', 'f8')]
-            for skew_spec in skew_spectra:
-                mydtype.append((skew_spec.name, 'f8'))
-            arr = np.empty(shape=skew_spec.Pskew.poles['k'].shape, dtype=mydtype)
-            arr['k'] = skew_spec.Pskew.poles['k']
-            for skew_spec in skew_spectra:
-                arr[skew_spec.name] = skew_spec.Pskew.poles['power_%d'%ell].real
-            fname = os.path.join(opts['outdir'], 'Sn_ell%d.txt'%ell)
-            header = 'Columns: ' + str(arr.dtype.names)
-            np.savetxt(fname, arr, header=header)
-            print('Wrote %s' % fname)
+        if skew_spectra != []:
+            for ell in skew_spec.Pskew.attrs['poles']:
+                mydtype = [('k', 'f8')]
+                for skew_spec in skew_spectra:
+                    mydtype.append((skew_spec.name, 'f8'))
+                arr = np.empty(shape=skew_spec.Pskew.poles['k'].shape, dtype=mydtype)
+                arr['k'] = skew_spec.Pskew.poles['k']
+                for skew_spec in skew_spectra:
+                    arr[skew_spec.name] = skew_spec.Pskew.poles['power_%d'%ell].real
+                fname = os.path.join(opts['outdir'], 'Sn_ell%d.txt'%ell)
+                header = 'Columns: ' + str(arr.dtype.names)
+                np.savetxt(fname, arr, header=header)
+                print('Wrote %s' % fname)
 
         # also store density power
         for ell in Pdd.attrs['poles']:
