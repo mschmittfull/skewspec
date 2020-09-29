@@ -13,7 +13,7 @@ def main():
     #sim_seeds = range(400,406)
     sim_seeds = [400]
 
-    apply_RSD_lst = [0]
+    apply_RSD_lst = [1]
     Rsmooth_lst = [20.0]
 
     # simulation boxsize
