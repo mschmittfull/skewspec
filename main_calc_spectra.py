@@ -428,8 +428,8 @@ def main():
 
     # list of skew spectra to compute
     power_kwargs={'mode': '2d', 'poles': opts['poles']}
-    skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
-    #skew_spectra = [S4, S4swap, S4split, S4a, S4b, S8, S12, S14]
+    #skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
+    skew_spectra = []
 
 
     # compute skew spectra
