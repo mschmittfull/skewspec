@@ -20,7 +20,7 @@ def main():
     boxsize = 1500.0
 
     # Ngrid to compute Perr (usually 512 or 1536)
-    Ngrid = 512
+    Ngrid = 1536
 
     # DM subsample ratio. For L=1500: 0.04, 0.0015
     subsample_ratio_lst = [0.04]
