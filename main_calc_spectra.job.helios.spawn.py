@@ -25,7 +25,7 @@ def main():
     # DM subsample ratio. For L=1500: 0.04, 0.0015
     subsample_ratio_lst = [0.04]
 
-    max_displacement = 10.0
+    max_displacement = 20.0
 
     # number of nodes to run on
     if Ngrid>1024:
