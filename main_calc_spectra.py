@@ -96,15 +96,19 @@ def main():
     # Source from which to compute density: 'cat' or 'delta_2SPT'
     opts['density_source'] = 'delta_2SPT'
 
+    # more options if source is catalog
     if opts['density_source'] == 'catalog':
         # Catalog with particle positions: 'DM_subsample' or 'gal_ptchall_with_RSD'
         opts['positions_catalog'] = 'DM_subsample'
         # Velocity source: DM_sim, deltalin_D2, deltalin_D2_2SPT
         opts['velocity_source'] = 'DM_sim'
 
-    elif opts['density_source'] == 'delta2_from_linear_mesh':
+    elif opts['density_source'] == 'delta_2SPT':
         opts['positions_catalog'] = None
         opts['velocity_source'] = None
+    else:
+        raise Exception('Invalid density_source %s' % opts['density_source'])
+
 
 
     # where to save output
