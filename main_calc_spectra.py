@@ -531,7 +531,8 @@ def main():
     # compute skew spectra
     for skew_spec in skew_spectra:
         # compute and store in skew_spec.Pskew
-        skew_spec.compute_from_mesh(mesh=delta_mesh_smoothed, third_mesh=delta_mesh, power_kwargs=power_kwargs)
+        skew_spec.compute_from_mesh(mesh=delta_mesh_smoothed, third_mesh=delta_mesh, power_kwargs=power_kwargs,
+            store_key='default_key')
 
 
     # store in individual files
@@ -553,14 +554,14 @@ def main():
             
         # store all in one file for each multipole
         if skew_spectra != []:
-            for ell in skew_spec.Pskew.attrs['poles']:
+            for ell in skew_spec.Pskew['default_key'].attrs['poles']:
                 mydtype = [('k', 'f8')]
                 for skew_spec in skew_spectra:
                     mydtype.append((skew_spec.name, 'f8'))
-                arr = np.empty(shape=skew_spec.Pskew.poles['k'].shape, dtype=mydtype)
-                arr['k'] = skew_spec.Pskew.poles['k']
+                arr = np.empty(shape=skew_spec.Pskew['default_key'].poles['k'].shape, dtype=mydtype)
+                arr['k'] = skew_spec.Pskew['default_key'].poles['k']
                 for skew_spec in skew_spectra:
-                    arr[skew_spec.name] = skew_spec.Pskew.poles['power_%d'%ell].real
+                    arr[skew_spec.name] = skew_spec.Pskew['default_key'].poles['power_%d'%ell].real
                 fname = os.path.join(opts['outdir'], 'Sn_ell%d.txt'%ell)
                 header = 'Columns: ' + str(arr.dtype.names)
                 np.savetxt(fname, arr, header=header)
