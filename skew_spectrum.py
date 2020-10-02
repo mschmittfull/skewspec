@@ -187,7 +187,7 @@ class SkewSpectrumV2(object):
         self.lin = lin
         self.quad = quad
         self.LOS = LOS
-        self.Pskew = None
+        self.Pskew = OrderedDict()
 
         if self.lin is None:
             self.lin = LinField()
@@ -197,6 +197,7 @@ class SkewSpectrumV2(object):
 
 
     def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
+                          store_key='default_key',
                           power_kwargs={'mode': '2d', 'poles':[0]}):
         """
         Compute <quadfield[mesh, second_mesh], linfield[third_mesh]>.
@@ -211,10 +212,13 @@ class SkewSpectrumV2(object):
         
         lin_mesh = self.lin.compute_from_mesh(third_mesh)
 
-        self.Pskew = calc_power(quadratic_mesh, second=lin_mesh,
-            los=self.LOS, **power_kwargs)
+        Pskew = calc_power(quadratic_mesh, second=lin_mesh,
+                los=self.LOS, **power_kwargs)
+        
+        self.Pskew[store_key] = Pskew
 
-        return self.Pskew
+        return Pskew
+
 
     def to_dict(self):
         return dict(
