@@ -75,7 +75,7 @@ def main():
     #####################################
     opts = OrderedDict()
 
-    opts['code_version_for_outputs'] = '0.1'
+    opts['code_version_for_outputs'] = '0.2'
 
     # Parse options
     opts['sim_seed'] = cmd_args.SimSeed
@@ -269,8 +269,8 @@ def main():
                 + f * LinField(m=2*LOS, n=-2).compute_from_mesh(deltalin.get_mesh()).compute()
                 + b1 * QuadField(composite='F2').compute_from_mesh(deltalin.get_mesh()).compute()
                 + f * QuadField(composite=('velocity_G2_par_%s' % LOS_string)).compute_from_mesh(deltalin.get_mesh()).compute(mode='real')
-                - b1 * f * QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
-                - f**2 * QuadField(n=-2, m=2*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
+                + b1 * f * QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
+                + f**2 * QuadField(n=-2, m=2*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS).compute_from_mesh(deltalin.get_mesh()).compute()
             )
 
             if b2 != 0.:
