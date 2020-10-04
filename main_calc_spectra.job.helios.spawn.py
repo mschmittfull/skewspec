@@ -14,7 +14,7 @@ def main():
     #sim_seeds = [400]
 
     apply_RSD_lst = [0,1]
-    Rsmooth_lst = [10.0, 20.0, 30.0]
+    Rsmooth_lst = [10.0, 20.0]
 
     # simulation boxsize
     boxsize = 1500.0
