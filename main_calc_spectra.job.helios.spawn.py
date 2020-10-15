@@ -10,8 +10,8 @@ def main():
     tryid = 'RunA8'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
-    #sim_seeds = range(400,406)
-    sim_seeds = [400]
+    sim_seeds = range(401,406)
+    #sim_seeds = [400]
 
     apply_RSD_lst = [0,1]
     Rsmooth_lst = [10.0, 20.0]
