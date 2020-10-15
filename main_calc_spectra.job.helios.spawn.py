@@ -99,7 +99,7 @@ export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
                         print("Submit %s" % job_fname)
                         os.system("sbatch %s" % job_fname)
                         print("Sleep...")
-                        os.system("sleep 2")
+                        os.system("sleep 1")
                     # do not send more than 1 email
                     send_mail = False
 
