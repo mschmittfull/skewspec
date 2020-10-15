@@ -1,0 +1,5 @@
+Base model: b1 =2, b2 = -0.5, bs2 = -0.4
+
+"t20p": 20% larger value than base model
+
+"tm20p": 20% smaller value than base model
