@@ -93,8 +93,8 @@ def main():
     # which multipoles (ell) to compute
     opts['poles'] = [0,2]
 
-    # Source from which to compute density: 'cat' or 'delta_2SPT'
-    opts['density_source'] = 'delta_2SPT'
+    # Source from which to compute density: 'catalog' or 'delta_2SPT'
+    opts['density_source'] = 'catalog'
 
     # more options if source is catalog
     if opts['density_source'] == 'catalog':
