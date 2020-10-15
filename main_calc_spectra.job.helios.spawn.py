@@ -10,7 +10,7 @@ def main():
     tryid = 'RunA8'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
-    sim_seeds = range(401,406)
+    sim_seeds = range(400,406)
     #sim_seeds = [400]
 
     apply_RSD_lst = [0,1]
@@ -25,7 +25,7 @@ def main():
     # DM subsample ratio. For L=1500: 0.04, 0.0015
     subsample_ratio_lst = [0.04]
 
-    max_displacement = 20.0
+    max_displacement = 2.5
 
     # number of nodes to run on
     if Ngrid>1024:
@@ -98,8 +98,8 @@ export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
                     if do_submit:
                         print("Submit %s" % job_fname)
                         os.system("sbatch %s" % job_fname)
-                        print("Sleep...")
-                        os.system("sleep 1")
+                        #print("Sleep...")
+                        #os.system("sleep 1")
                     # do not send more than 1 email
                     send_mail = False
 
