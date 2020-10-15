@@ -113,7 +113,7 @@ def main():
 
     # where to save output
     DS_string = '_DS%s' % opts['density_source']
-    if opts['density_source'] == 'cat':
+    if opts['density_source'] == 'catalog':
         sr_string = '_sr%g' % opts['subsample_ratio']
         vel_string = '_v%s' % opts['velocity_source']
         MD_string = '_MD%g' % opts['max_displacement']
