@@ -32,10 +32,11 @@ def main():
 
 
     ## Options if density_source=='delta_2SPT'
-    #b1, b2, bG2 = 1.0, 0.0, 0.0
-    #b1, b2, bG2 = 2.0, -0.5, -0.4
-    b1, b2, bG2 = 2.0, -0.4, -0.4
-    f_log_growth = 0.786295
+    #b1, b2, bG2 = 1.0, 0.0, 0.0 # DM
+    #b1, b2, bG2 = 2.0, -0.5, -0.4  # base model for halos
+    b1, b2, bG2 = 2.0, -0.5, -0.4
+    #f_log_growth = 0.786295 # base
+    f_log_growth = 0.943554 # +20%
 
 
     # number of nodes to run on
