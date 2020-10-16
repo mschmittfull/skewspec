@@ -14,7 +14,7 @@ def main():
     sim_seeds = [400]
 
     apply_RSD_lst = [1]
-    Rsmooth_lst = [10.0, 20.0]
+    Rsmooth_lst = [20.0]
 
     # simulation boxsize
     boxsize = 1500.0
@@ -34,7 +34,7 @@ def main():
     ## Options if density_source=='delta_2SPT'
     #b1, b2, bG2 = 1.0, 0.0, 0.0
     b1, b2, bG2 = 2.0, -0.5, -0.4
-    f_log_growth = 0.7862951
+    f_log_growth = 0.786295
 
 
     # number of nodes to run on

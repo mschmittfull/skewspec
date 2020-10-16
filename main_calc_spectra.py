@@ -80,7 +80,7 @@ def main():
     ap.add_argument('--bG2', default=0.0, type=float,
         help='bG2 bias. Only used if DensitySource=delta_2SPT.')
 
-    ap.add_argument('--fLogGrowth', default=0.7862951, type=float,
+    ap.add_argument('--fLogGrowth', default=0.786295, type=float,
         help='Logarithmic growth factor f. Only used if DensitySource=delta_2SPT.')
 
 
