@@ -68,6 +68,22 @@ def main():
                 type=float,
                 help='Maximum RSD displacement in Mpc/h.')
 
+    ap.add_argument('--DensitySource', default='catalog', type=str,
+        help='Source from which to compute the density. catalog or delta_2SPT')
+
+    ap.add_argument('--b1', default=1.0, type=float,
+        help='b1 bias. Only used if DensitySource=delta_2SPT.')
+
+    ap.add_argument('--b2', default=0.0, type=float,
+        help='b2 bias. Only used if DensitySource=delta_2SPT.')
+
+    ap.add_argument('--bG2', default=0.0, type=float,
+        help='bG2 bias. Only used if DensitySource=delta_2SPT.')
+
+    ap.add_argument('--fLogGrowth', default=0.7862951, type=float,
+        help='Logarithmic growth factor f. Only used if DensitySource=delta_2SPT.')
+
+
     cmd_args = ap.parse_args()
 
     #####################################
@@ -94,7 +110,7 @@ def main():
     opts['poles'] = [0,2]
 
     # Source from which to compute density: 'catalog' or 'delta_2SPT'
-    opts['density_source'] = 'catalog'
+    opts['density_source'] = cmd_args.DensitySource
 
     # more options if source is catalog
     if opts['density_source'] == 'catalog':
@@ -109,25 +125,6 @@ def main():
     else:
         raise Exception('Invalid density_source %s' % opts['density_source'])
 
-
-
-    # where to save output
-    DS_string = '_DS%s' % opts['density_source']
-    if opts['density_source'] == 'catalog':
-        sr_string = '_sr%g' % opts['subsample_ratio']
-        vel_string = '_v%s' % opts['velocity_source']
-        MD_string = '_MD%g' % opts['max_displacement']
-    else:
-        sr_string, vel_string, MD_string = '', '', ''
-
-    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d%s%s%s%s/' % (
-        opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
-        int(opts['APPLY_RSD']), 
-        DS_string, sr_string, vel_string, MD_string)
-
-
-
-
     # cosmology of ms_gadget sims (to compute D_lin(z))
     # omega_m = 0.307494
     # omega_bh2 = 0.022300
@@ -139,7 +136,37 @@ def main():
                        Om_r=0.0,
                        h0=0.6774)
 
-    opts['f_log_growth'] = np.sqrt(0.61826)
+    #opts['f_log_growth'] = 0.7862951  # np.sqrt(0.61826)
+    opts['f_log_growth'] = cmd_args.fLogGrowth
+
+
+    # where to save output
+    DS_string = '_DS%s' % opts['density_source']
+    if opts['density_source'] == 'catalog':
+        sr_string = '_sr%g' % opts['subsample_ratio']
+        vel_string = '_v%s' % opts['velocity_source']
+        MD_string = '_MD%g' % opts['max_displacement']
+    else:
+        sr_string, vel_string, MD_string = '', '', ''
+
+    b1, b2, bG2 = cmd_args.b1, cmd_args.b2, cmd_args.bG2
+    if opts['density_source'] == 'catalog':
+        b_string, f_string = '', ''
+    elif opts['density_source'] == 'delta_2SPT':
+        b_string = '' if (b1==1. and b2==0. and bG2==0.) else ('_b%g_%g_%g' % (b1,b2,bG2))
+        f_string = '' if opts['f_log_growth']==0.7862951 else ('_f%g' % opts['f_log_growth'])
+
+    opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d%s%s%s%s%s%s/' % (
+        opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
+        int(opts['APPLY_RSD']), 
+        DS_string, sr_string, vel_string, MD_string, b_string, f_string)
+
+
+
+
+
+
+
 
 
     # ###########################
@@ -262,7 +289,6 @@ def main():
                 )
         else:
             # compute 2nd order density in redshift space
-            b1, b2, bG2 = 1.0, 0.0, 0.0
             f = opts['f_log_growth']
             delta_mesh = FieldMesh(
                 b1 * deltalin.get_mesh().compute()

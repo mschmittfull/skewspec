@@ -7,13 +7,13 @@ def main():
     ## OPTIONS
     do_submit = True
 
-    tryid = 'RunA8'
+    tryid = 'RunA9'
 
     binfile = '/home/mschmittfull/CODE/skewspec/main_calc_spectra.py_%s' % tryid
-    sim_seeds = range(400,406)
-    #sim_seeds = [400]
+    #sim_seeds = range(400,406)
+    sim_seeds = [400]
 
-    apply_RSD_lst = [0,1]
+    apply_RSD_lst = [1]
     Rsmooth_lst = [10.0, 20.0]
 
     # simulation boxsize
@@ -22,10 +22,20 @@ def main():
     # Ngrid to compute Perr (usually 512 or 1536)
     Ngrid = 512
 
+    # 'catalog' or 'delta_2SPT'
+    density_source = 'delta_2SPT'
+
+    ## Options if density_source=='catalog'
     # DM subsample ratio. For L=1500: 0.04, 0.0015
     subsample_ratio_lst = [0.04]
+    max_displacement = 100.0
 
-    max_displacement = 2.5
+
+    ## Options if density_source=='delta_2SPT'
+    #b1, b2, bG2 = 1.0, 0.0, 0.0
+    b1, b2, bG2 = 2.0, -0.5, -0.4
+    f_log_growth = 0.7862951
+
 
     # number of nodes to run on
     if Ngrid>1024:
@@ -81,7 +91,7 @@ conda activate nbodykit-0.3.7-env
 
 
 # each helios noise has dual 14-core processors (so 28 cores per node?) and 128GB per node
-mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g --SubsampleRatio %g --MaxDisplacement %g
+mpiexec -n %d python %s --SimSeed %d --Ngrid %d --boxsize %g --ApplyRSD %d --Rsmooth %g --SubsampleRatio %g --MaxDisplacement %g --DensitySource %s --b1 %g --b2 %g --bG2 %g --fLogGrowth %g
 
 conda deactivate
 export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
@@ -90,7 +100,9 @@ export HDF5_USE_FILE_LOCKING=$tmp_hdf5_use_file_locking
                        tryid, sim_seed, Rsmooth, apply_RSD,
                        srun_cores,
                        binfile, sim_seed, Ngrid, boxsize, apply_RSD, Rsmooth, 
-                       subsample_ratio, max_displacement))
+                       subsample_ratio, max_displacement,
+                       density_source, b1, b2, bG2, f_log_growth
+                       ))
 
                     f.close()
                     print("Wrote %s" % job_fname)
