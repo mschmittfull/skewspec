@@ -154,7 +154,7 @@ def main():
         b_string, f_string = '', ''
     elif opts['density_source'] == 'delta_2SPT':
         b_string = '' if (b1==1. and b2==0. and bG2==0.) else ('_b%g_%g_%g' % (b1,b2,bG2))
-        f_string = '' if opts['f_log_growth']==0.7862951 else ('_f%g' % opts['f_log_growth'])
+        f_string = '' if opts['f_log_growth']==0.786295 else ('_f%g' % opts['f_log_growth'])
 
     opts['outdir'] = 'data/Pskew_sims/00000%d-01536-%.1f-wig/R%.1f_Ng%d_RSD%d%s%s%s%s%s%s/' % (
         opts['sim_seed'], opts['boxsize'], opts['Rsmooth'], opts['Ngrid'],
