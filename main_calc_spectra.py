@@ -140,7 +140,7 @@ def main():
     opts['f_log_growth'] = cmd_args.fLogGrowth
 
 
-    # where to save output
+    # where to save output (todo: move code to a function )
     DS_string = '_DS%s' % opts['density_source']
     if opts['density_source'] == 'catalog':
         sr_string = '_sr%g' % opts['subsample_ratio']
