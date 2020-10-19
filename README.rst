@@ -24,8 +24,8 @@ Running
     for smoother in smoothers:
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
-
     # Compute skew spectra
+    LOS = numpy.array([0,0,1])
     skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(LOS=LOS)
     for skew_spec in skew_spectra:
         # Compute skew spectrum and store in skew_spec.Pskew
