@@ -77,6 +77,7 @@ Running from the command line
   .. code-block:: bash
 
     $ sbatch main_calc_spectra.job.helios
+    
 
 .. main_calc_spectra.job.helios: main_calc_spectra.job.helios
 
