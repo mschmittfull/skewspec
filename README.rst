@@ -72,14 +72,14 @@ Running from the command line
 
 .. _main_calc_spectra.py: main_calc_spectra.py
 
-- For an example SLURM script to run on a cluster, see `main_calc_spectra.job.helios`_ and use  
+- For an example SLURM script to run on a cluster, see `main_calc_spectra.job.helios.spawn.py`_ and use  
 
   .. code-block:: bash
 
-    $ sbatch main_calc_spectra.job.helios
+    $ python main_calc_spectra.job.helios.spawn.py
 
 
-.. _main_calc_spectra.job.helios: main_calc_spectra.job.helios
+.. _main_calc_spectra.job.helios.spawn.py: main_calc_spectra.job.helios.spawn.py
 
 - The output is stored in text files.
 
