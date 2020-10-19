@@ -76,7 +76,7 @@ Running from the command line
 
   .. code-block:: bash
 
-    $ sbatch scripts/reconstruct_ms_gadget_sim.job.helios
+    $ sbatch main_calc_spectra.job.helios
 
 .. main_calc_spectra.job.helios: main_calc_spectra.job.helios
 
