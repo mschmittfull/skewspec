@@ -89,7 +89,8 @@ Jupyter notebooks
 
 - Notebooks to plot results are in the `notebooks' folder.
 
-.. _notebooks: notebooks/
+
+.. _notebooks: ./notebooks/
 
 
 Installation
