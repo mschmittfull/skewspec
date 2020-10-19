@@ -443,20 +443,14 @@ def main():
     # Get all RSD skew spectra
     ##########################################################################
 
-    # apply smoothing
+    # Apply smoothing
     smoothers = [smoothing.GaussianSmoother(R=opts['Rsmooth'])]
     delta_mesh_smoothed = FieldMesh(delta_mesh.compute(mode='real'))
     for smoother in smoothers:
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
-    #if comm.rank == 0:        
-    #    print('delta: ', get_cstats_string(delta_mesh.compute(mode='real')))
-    #    print('delta smoothed: ', get_cstats_string(delta_mesh_smoothed.compute(mode='real')))
 
-    
-
-
-    # Define skew spectra. default n=n'=0 and m=m'=[0,0,0].
+    # Define skew spectra. default is n=n'=0 and m=m'=[0,0,0].
     s1 = SkewSpectrumV2(QuadField(composite='F2'), LOS=LOS, name='S1')
     s2 = SkewSpectrumV2(QuadField(), LOS=LOS, name='S2')
     s3 = SkewSpectrumV2(QuadField(composite='tidal_G2'), LOS=LOS, name='S3')
@@ -485,73 +479,52 @@ def main():
             QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=2.0),
             QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS, prefactor=1.0)]),
         LOS=LOS, name='S4')
-    # s4sep = SkewSpectrumV2(
-    #     quad=QuadField(nprime=-2, mprime=LOS),
-    #     lin=LinField(m=LOS),
-    #     LOS=LOS, name='S4sep')
-
-    # added factor of 2 on 11 sep 2020
     s5 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
         QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
         QuadField(composite='velocity_G2_par_%s' % LOS_string)
     ]), LOS=LOS, name='S5')
     s6 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
-    s7 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS, composite='tidal_G2'), LOS=LOS, name='S7')
+    s7 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS, composite='tidal_G2'),
+        LOS=LOS, name='S7')
     s8split = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
         QuadField(nprime=-4, mprime=4*LOS),
         QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, prefactor=2.0),
         QuadField(m=LOS, nprime=-4, mprime=3*LOS),
-        QuadField(n=-2, m=3*LOS, nprime=-2, mprime=LOS, prefactor=2.0)]), LOS=LOS, name='S8split')
-    fudge_fac = 1.0
+        QuadField(n=-2, m=3*LOS, nprime=-2, mprime=LOS, prefactor=2.0)]),
+    LOS=LOS, name='S8split')
     s8 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS, prefactor=fudge_fac),
-        QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS, prefactor=2.0*fudge_fac)]),
+        QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS),
+        QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS,
+            prefactor=2.0)]),
         LOS=LOS, name='S8')
 
     s9 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
         QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='F2'),
-        QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, prefactor=2.0)]),
+        QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, 
+            prefactor=2.0)]),
         LOS=LOS, name='S9')
-    s10 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS), LOS=LOS, name='S10')
-    s11 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='tidal_G2'), LOS=LOS, name='S11')
-    if True:
-        # correct S12
-        s12 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-            QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
-            QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, prefactor=2.0)]),
-            LOS=LOS, name='S12')
-    else:
-        # play woth S12
-        s12 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-            QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=2*LOS),
-            QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=2*LOS, prefactor=2.0)]),
-            LOS=LOS, name='S12')
+    s10 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS),
+        LOS=LOS, name='S10')
+    s11 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+        composite='tidal_G2'), LOS=LOS, name='S11')
+    s12 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
+        QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
+        QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, 
+            prefactor=2.0)]),
+        LOS=LOS, name='S12')
     s13 = SkewSpectrumV2(
-        QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='velocity_G2_par_%s' % LOS_string),
+        QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+            composite='velocity_G2_par_%s' % LOS_string),
         LOS=LOS, name='S13')
-    if True:
-        # correct S14
-        s14 = SkewSpectrumV2(
-            QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
-            LOS=LOS, name='S14')
-    else:
-        # play with S14
-        s14 = SkewSpectrumV2(
-            QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=2*LOS),
-            LOS=LOS, name='S14')
-
-    # s4test = SkewSpectrumV2(
-    #     QuadField(mprimeprime=LOS), LOS=LOS, name='S4')
-    s4test = SkewSpectrumV2(
-        quad=QuadField(n=-2, m=LOS, prefactor=1.0),
-        LOS=LOS, name='S4')
+    s14 = SkewSpectrumV2(
+        QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
+        LOS=LOS, name='S14')
 
 
 
     # list of skew spectra to compute
     power_kwargs={'mode': '2d', 'poles': opts['poles']}
     skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
-    #skew_spectra = []
 
 
     # compute skew spectra
