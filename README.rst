@@ -87,7 +87,7 @@ Running from the command line
 Jupyter notebooks
 -----------------------------
 
-- Notebooks to plot results are in the `notebooks' folder.
+- Notebooks to plot results are in the notebooks folder.
 
 
 .. _notebooks: ./notebooks/
