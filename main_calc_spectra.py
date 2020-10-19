@@ -4,28 +4,19 @@ from collections import OrderedDict
 import numpy as np
 import os
 
-from nbodykit.lab import FFTPower, FieldMesh
+from nbodykit.algorithms.fftpower import FFTPower
+from nbodykit.source.mesh.field import FieldMesh
 from nbodykit import CurrentMPIComm
 
-from lsstools.cosmo_model import CosmoModel
-from lsstools.gen_cosmo_fcns import calc_f_log_growth_rate, generate_calc_Da
-from lsstools.paint_utils import mass_weighted_paint_cat_to_delta
-from perr.path_utils import get_in_path
-from lsstools.nbkit03_utils import get_csum, get_csqsum, apply_smoothing, catalog_persist, get_cstats_string, linear_rescale_fac, get_crms,convert_nbk_cat_to_np_array
 from perr_private.model_target_pair import ModelTargetPair, Model, Target
-from lsstools.sim_galaxy_catalog_creator import PTChallengeGalaxiesFromRockstarHalos
-from perr_private.read_utils import readout_mesh_at_cat_pos
-
 from skewspec import smoothing
-from skewspec.skew_spectrum import SkewSpectrumV2, QuadField, SumOfQuadFields, LinField, compute_dnm, compute_dnm_dnmprime
-
-
-
+from skewspec.skew_spectrum import SkewSpectrum
+from utils import catalog_persist, linear_rescale_fac
 
 
 def main():
     """
-    Calculate skew spectra.
+    Script to calculate skew spectra of an input density.
     """
 
     #####################################
@@ -163,12 +154,6 @@ def main():
 
 
 
-
-
-
-
-
-
     # ###########################
     # START PROGRAM
     # ###########################
@@ -217,6 +202,8 @@ def main():
         # Units: 1/(aH) = 1./(a * H0*np.sqrt(Om_m/a**3+Om_L)) * (H0/100.) in Mpc/h / (km/s).
         # For ms_gadget, get 1/(aH) = 0.01145196 Mpc/h/(km/s) = 0.0183231*0.6250 Mpc/h/(km/s).
         # Note that MP-Gadget files have RSDFactor=1/(a^2H)=0.0183231 for a=0.6250 b/c they use a^2\dot x for Velocity.
+        from lsstools.sim_galaxy_catalog_creator import PTChallengeGalaxiesFromRockstarHalos
+
         assert opts['sim_scale_factor'] == 0.625
 
         # PT challenge galaxies, apply RSD to position (TEST)
@@ -308,7 +295,6 @@ def main():
                 delta_mesh = FieldMesh(
                     delta_mesh.compute()
                     + bG2 * QuadField(composite='tidal_G2').compute_from_mesh(deltalin.get_mesh()).compute())
-
 
 
 
@@ -431,17 +417,14 @@ def main():
         return res
 
 
-
-    #if comm.rank == 0:
-    #    print('Mesh: ', get_cstats_string(delta_mesh.compute()))
-
     ## Compute density power spectrum 
     Pdd = calc_power(delta_mesh, los=opts['LOS'], mode='2d', poles=opts['poles'])
 
 
     ##########################################################################
-    # Get all RSD skew spectra
+    # Get RSD skew spectra
     ##########################################################################
+    power_kwargs={'mode': '2d', 'poles': opts['poles']}
 
     # Apply smoothing
     smoothers = [smoothing.GaussianSmoother(R=opts['Rsmooth'])]
@@ -449,92 +432,16 @@ def main():
     for smoother in smoothers:
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
-
-    # Define skew spectra. default is n=n'=0 and m=m'=[0,0,0].
-    s1 = SkewSpectrumV2(QuadField(composite='F2'), LOS=LOS, name='S1')
-    s2 = SkewSpectrumV2(QuadField(), LOS=LOS, name='S2')
-    s3 = SkewSpectrumV2(QuadField(composite='tidal_G2'), LOS=LOS, name='S3')
-    s4a = SkewSpectrumV2(QuadField(nprime=-2,mprime=2*LOS), LOS=LOS, name='S4a')
-    s4b = SkewSpectrumV2(QuadField(m=LOS,nprime=-2,mprime=LOS), LOS=LOS, name='S4b')
-    s4split = SkewSpectrumV2(
-        SumOfQuadFields(quad_fields=[
-            QuadField(nprime=-2, mprime=2*LOS, prefactor=1.0), 
-            QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=1.0)]),
-        LOS=LOS, name='S4')
-    s4swap = SkewSpectrumV2(
-        quad=QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=1.0),
-        LOS=LOS, name='S4')
-    s4 = SkewSpectrumV2(
-        quad=QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS, prefactor=1.0),
-        LOS=LOS, name='S4')
-    s4out = SkewSpectrumV2(
-        quad=QuadField(nprime=-2, mprime=LOS, prefactor=1.0),
-        lin=LinField(m=LOS),
-        LOS=LOS, name='S4')
-    s4alternative = SkewSpectrumV2(
-        quad=QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=1.0),
-        LOS=LOS, name='S4')
-    s4alternative2 = SkewSpectrumV2(
-        quad=SumOfQuadFields(quad_fields=[
-            QuadField(m=LOS, nprime=-2, mprime=LOS, prefactor=2.0),
-            QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS, prefactor=1.0)]),
-        LOS=LOS, name='S4')
-    s5 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
-        QuadField(composite='velocity_G2_par_%s' % LOS_string)
-    ]), LOS=LOS, name='S5')
-    s6 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
-    s7 = SkewSpectrumV2(QuadField(nprime=-2, mprime=2*LOS, composite='tidal_G2'),
-        LOS=LOS, name='S7')
-    s8split = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(nprime=-4, mprime=4*LOS),
-        QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, prefactor=2.0),
-        QuadField(m=LOS, nprime=-4, mprime=3*LOS),
-        QuadField(n=-2, m=3*LOS, nprime=-2, mprime=LOS, prefactor=2.0)]),
-    LOS=LOS, name='S8split')
-    s8 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS),
-        QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS,
-            prefactor=2.0)]),
-        LOS=LOS, name='S8')
-
-    s9 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='F2'),
-        QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, 
-            prefactor=2.0)]),
-        LOS=LOS, name='S9')
-    s10 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS),
-        LOS=LOS, name='S10')
-    s11 = SkewSpectrumV2(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
-        composite='tidal_G2'), LOS=LOS, name='S11')
-    s12 = SkewSpectrumV2(SumOfQuadFields(quad_fields=[
-        QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
-        QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, 
-            prefactor=2.0)]),
-        LOS=LOS, name='S12')
-    s13 = SkewSpectrumV2(
-        QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
-            composite='velocity_G2_par_%s' % LOS_string),
-        LOS=LOS, name='S13')
-    s14 = SkewSpectrumV2(
-        QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
-        LOS=LOS, name='S14')
-
-
-
-    # list of skew spectra to compute
-    power_kwargs={'mode': '2d', 'poles': opts['poles']}
-    skew_spectra = [s1,s2, s3, s4, s5,s6, s7, s8, s9, s10, s11, s12, s13, s14]
-
-
-    # compute skew spectra
+    # Compute skew spectra
+    skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(LOS=LOS)
     for skew_spec in skew_spectra:
         # compute and store in skew_spec.Pskew
-        skew_spec.compute_from_mesh(mesh=delta_mesh_smoothed, third_mesh=delta_mesh, power_kwargs=power_kwargs,
+        skew_spec.compute_from_mesh(mesh=delta_mesh_smoothed, 
+            third_mesh=delta_mesh, power_kwargs=power_kwargs,
             store_key='default_key')
 
 
-    # store in individual files
+    # Store results in files
     if comm.rank == 0:
         if not os.path.exists(opts['outdir']):
             os.makedirs(opts['outdir'])

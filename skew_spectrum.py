@@ -1,10 +1,11 @@
 from __future__ import print_function, division
-
 from collections import OrderedDict
 import numpy as np
+from nbodykit.algorithms.fftpower import FFTPower
 from nbodykit.source.mesh.field import FieldMesh
 
-from lsstools.nbkit03_utils import get_cstats_string, calc_quadratic_field
+from utils import get_cstats_string, calc_quadratic_field
+
 
 class LinField(object):
     def __init__(self, name=None, n=0, m=None, prefactor=1.0):
@@ -170,10 +171,11 @@ class SumOfQuadFields(object):
         return d
 
 
-class SkewSpectrumV2(object):
+class SkewSpectrum(object):
     """
-    SkewSpectrum class, version 2.
-    Uses SumOfQuadFields and QuadFields classes.
+    Class representing skew-spectra.
+
+    quad shall be QuadField or SumOfQuadFields object.
     Compute <quad_field, delta> or <sum_of_quad_fields, delta>
     """
     def __init__(self, quad, lin=None, name=None, LOS=None):
@@ -194,6 +196,59 @@ class SkewSpectrumV2(object):
 
         if self.name is None:
             self.name = '%s_X_%s' % (self.quad.name, self.lin.name)
+
+
+    @classmethod
+    def get_list_of_standard_skew_spectra(cls, LOS=None):
+        """
+        Get list of the 14 standard skew spectra S1-S14 derived from the tree-
+        level galaxy bispectrum in redshift space.
+        """
+        # Define standard skew spectra. default is n=n'=0 and m=m'=[0,0,0].
+        LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
+
+        s1 = cls(QuadField(composite='F2'), LOS=LOS, name='S1')
+        s2 = cls(QuadField(), LOS=LOS, name='S2')
+        s3 = cls(QuadField(composite='tidal_G2'), LOS=LOS, name='S3')
+        s4 = cls(
+            quad=QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS),
+            LOS=LOS, name='S4')
+        s5 = cls(SumOfQuadFields(quad_fields=[
+            QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
+            QuadField(composite='velocity_G2_par_%s' % LOS_string)
+        ]), LOS=LOS, name='S5')
+        s6 = cls(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
+        s7 = cls(QuadField(nprime=-2, mprime=2*LOS, 
+                composite='tidal_G2'),
+            LOS=LOS, name='S7')
+        s8 = cls(SumOfQuadFields(quad_fields=[
+            QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS),
+            QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS,
+                prefactor=2.0)]),
+            LOS=LOS, name='S8')
+        s9 = cls(SumOfQuadFields(quad_fields=[
+            QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='F2'),
+            QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, 
+                prefactor=2.0)]),
+            LOS=LOS, name='S9')
+        s10 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS),
+            LOS=LOS, name='S10')
+        s11 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+            composite='tidal_G2'), LOS=LOS, name='S11')
+        s12 = cls(SumOfQuadFields(quad_fields=[
+            QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
+            QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, 
+                prefactor=2.0)]),
+            LOS=LOS, name='S12')
+        s13 = cls(
+            QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+                composite='velocity_G2_par_%s' % LOS_string),
+            LOS=LOS, name='S13')
+        s14 = cls(
+            QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
+            LOS=LOS, name='S14')
+        skew_spectra = [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14]
+        return skew_spectra
 
 
     def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
@@ -267,51 +322,6 @@ class SkewSpectrumV2(object):
     #     obj = cls(lin=None, quad=None, LOS=None, name=None)
     #     obj.Pskew = BinnedStatistic.from_json(filename)
     #     return obj
-        
-
-
-# class SkewSpectrum(object):
-#     """
-#     SkewSpectrum class, version 1, depracted -- don't use!
-#     """
-#     def __init__(self, name=None, smoothing=None,
-#                 n=0, nprime=0, nprimeprime=0, m=None, mprime=None, mprimeprime=None,
-#                  prefactor=1.0,
-#                 LOS=None):
-#         self.name = name
-#         self.smoothing = smoothing
-#         self.n = n
-#         self.nprime = nprime
-#         self.nprimeprime = nprimeprime
-#         if m is None:
-#             m = [0,0,0]
-#         if mprime is None:
-#             mprime = [0,0,0]
-#         if mprimeprime is None:
-#             mprimeprime = [0,0,0]
-#         self.m = m
-#         self.mprime = mprime
-#         self.mprimeprime = mprimeprime
-#         self.LOS = LOS
-#         self.Pskew = None
-#         self.prefactor = prefactor
-
-#     def compute_from_mesh(self, mesh, second_mesh=None, third_mesh=None, 
-#                           power_kwargs={'mode': '2d', 'poles':[0,2]}):
-#         if second_mesh is None:
-#             second_mesh = mesh
-#         if third_mesh is None:
-#             third_mesh = mesh
-        
-#         quadratic_mesh = compute_dnm_dnmprime(
-#             mesh, mesh_prime=second_mesh, 
-#             n=self.n, nprime=self.nprime, m=self.m, mprime=self.mprime)
-        
-#         linear_mesh = compute_dnm(third_mesh, n=self.nprimeprime, m=self.mprimeprime, 
-#                                         prefactor=self.prefactor)
-        
-#         self.Pskew = calc_power(quadratic_mesh, second=linear_mesh, los=self.LOS, **power_kwargs)
-#         return self.Pskew
         
         
 def compute_dnm(mesh, n, m, prefactor=1.0, verbose=True, mode='real',
@@ -393,9 +403,6 @@ def compute_dnm_dnmprime(mesh, mesh_prime=None,
     return FieldMesh(out_rfield)
 
 
-
-
-from nbodykit.lab import FFTPower, FieldMesh
 def calc_power(mesh, second=None, mode='1d', k_bin_width=1.0, verbose=False, los=None, poles=None):
     BoxSize = mesh.attrs['BoxSize']
     assert BoxSize[0] == BoxSize[1]
