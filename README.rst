@@ -48,6 +48,28 @@ Running from the command line
                             [--DensitySource DENSITYSOURCE] [--b1 B1]
                             [--b2 B2] [--bG2 BG2] [--fLogGrowth FLOGGROWTH]
 
+    optional arguments:
+    -h, --help            show this help message and exit
+    --SimSeed SIMSEED     Simulation seed to load.
+    --boxsize BOXSIZE     Boxsize in Mpc/h.
+    --ApplyRSD APPLYRSD   0: No RSD. 1: Include RSD in catalog.
+    --Rsmooth RSMOOTH     Smoothing of quad field.
+    --Ngrid NGRID         Ngrid used to compute skew spectra.
+    --SubsampleRatio SUBSAMPLERATIO
+                          Subsample ratio of DM snapshot to use as input.
+    --MaxDisplacement MAXDISPLACEMENT
+                          Maximum RSD displacement in Mpc/h.
+    --DensitySource DENSITYSOURCE
+                          Source from which to compute the density. catalog or
+                          delta_2SPT
+    --b1 B1               b1 bias. Only used if DensitySource=delta_2SPT.
+    --b2 B2               b2 bias. Only used if DensitySource=delta_2SPT.
+    --bG2 BG2             bG2 bias. Only used if DensitySource=delta_2SPT.
+    --fLogGrowth FLOGGROWTH
+                          Logarithmic growth factor f. Only used if
+                          DensitySource=delta_2SPT.
+
+
 .. _main_calc_spectra.py: main_calc_spectra.py
 
 - For an example SLURM script to run on a cluster, see `main_calc_spectra.job.helios`_ and use  
