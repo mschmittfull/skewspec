@@ -77,9 +77,9 @@ Running from the command line
   .. code-block:: bash
 
     $ sbatch main_calc_spectra.job.helios
-    
 
-.. main_calc_spectra.job.helios: main_calc_spectra.job.helios
+
+.. _main_calc_spectra.job.helios: main_calc_spectra.job.helios
 
 - The output is stored in text files.
 
@@ -89,7 +89,7 @@ Jupyter notebooks
 
 - Notebooks to plot results are in the `notebooks' folder.
 
-.. notebooks: notebooks/
+.. _notebooks: notebooks/
 
 
 Installation
