@@ -5,7 +5,7 @@ Measure large-scale structure skew-spectra
 The code reads an input catalog of objects or generates a synthetic density
 field, and computes skew-spectra corresponding to the contributions to the 
 tree-level galaxy bispectrum in redshift space.
-For details see https://arxiv.org/abs/TODO.
+For details see https://arxiv.org/abs/2010.14267.
 
 
 Running
