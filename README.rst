@@ -15,6 +15,7 @@ Running
 
   .. code-block:: python
 
+    from nbodykit.source.mesh.field import FieldMesh
     from skewspec import smoothing
     from skewspec.skew_spectrum import SkewSpectrum
 
