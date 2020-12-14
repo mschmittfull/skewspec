@@ -19,8 +19,8 @@ Running
     from skewspec import smoothing
     from skewspec.skew_spectrum import SkewSpectrum
 
-    # Given a catalog cat of objects (e.g. halos), paint the overdensity delta
-    # on a 3D mesh using nbodykit.
+    # Given an nbodykit CatalogSource object `cat' (e.g. containing a halo
+    # catalog), paint the overdensity delta on a 3D mesh using nbodykit.
     delta_mesh = FieldMesh(cat.to_mesh(Nmesh=Nmesh, BoxSize=BoxSize, 
         window='cic', interlaced=False, compensated=False).compute()-1)
 
