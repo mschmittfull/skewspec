@@ -11,7 +11,7 @@ For details see https://arxiv.org/abs/2010.14267.
 Running
 -------
 
-- The basic usage is like this, assuming delta_mesh is an nbodykit mesh object:
+- The basic usage is as follows.
 
   .. code-block:: python
 
