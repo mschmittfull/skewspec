@@ -199,55 +199,74 @@ class SkewSpectrum(object):
 
 
     @classmethod
-    def get_list_of_standard_skew_spectra(cls, LOS=None):
+    def get_list_of_standard_skew_spectra(cls, LOS=None,
+        redshift_space_spectra=True):
         """
         Get list of the 14 standard skew spectra S1-S14 derived from the tree-
         level galaxy bispectrum in redshift space.
+        If redshift_space_spectra is False, get the 3 skew-spectra derived 
+        from the galaxy bispectrum in real space.
         """
-        # Define standard skew spectra. default is n=n'=0 and m=m'=[0,0,0].
-        LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
+        if redshift_space_spectra:
+            # 14 skew spectra for redshift space bispectrum. 
+            # default is n=n'=0 and m=m'=[0,0,0].
+            LOS_string = 'LOS%d%d%d' % (LOS[0], LOS[1], LOS[2])
 
-        s1 = cls(QuadField(composite='F2'), LOS=LOS, name='S1')
-        s2 = cls(QuadField(), LOS=LOS, name='S2')
-        s3 = cls(QuadField(composite='tidal_G2'), LOS=LOS, name='S3')
-        s4 = cls(
-            quad=QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS),
-            LOS=LOS, name='S4')
-        s5 = cls(SumOfQuadFields(quad_fields=[
-            QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
-            QuadField(composite='velocity_G2_par_%s' % LOS_string)
-        ]), LOS=LOS, name='S5')
-        s6 = cls(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
-        s7 = cls(QuadField(nprime=-2, mprime=2*LOS, 
-                composite='tidal_G2'),
-            LOS=LOS, name='S7')
-        s8 = cls(SumOfQuadFields(quad_fields=[
-            QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS),
-            QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS,
-                prefactor=2.0)]),
-            LOS=LOS, name='S8')
-        s9 = cls(SumOfQuadFields(quad_fields=[
-            QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='F2'),
-            QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, 
-                prefactor=2.0)]),
-            LOS=LOS, name='S9')
-        s10 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS),
-            LOS=LOS, name='S10')
-        s11 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
-            composite='tidal_G2'), LOS=LOS, name='S11')
-        s12 = cls(SumOfQuadFields(quad_fields=[
-            QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
-            QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, 
-                prefactor=2.0)]),
-            LOS=LOS, name='S12')
-        s13 = cls(
-            QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
-                composite='velocity_G2_par_%s' % LOS_string),
-            LOS=LOS, name='S13')
-        s14 = cls(
-            QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
-            LOS=LOS, name='S14')
-        skew_spectra = [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14]
+            s1 = cls(QuadField(composite='F2'), LOS=LOS, name='S1')
+            s2 = cls(QuadField(), LOS=LOS, name='S2')
+            s3 = cls(QuadField(composite='tidal_G2'), LOS=LOS, name='S3')
+            s4 = cls(
+                quad=QuadField(nprime=-2, mprime=LOS, mprimeprime=LOS),
+                LOS=LOS, name='S4')
+            s5 = cls(SumOfQuadFields(quad_fields=[
+                QuadField(composite='F2', nprime=-2, mprime=2*LOS, prefactor=2.0),
+                QuadField(composite='velocity_G2_par_%s' % LOS_string)
+            ]), LOS=LOS, name='S5')
+            s6 = cls(QuadField(nprime=-2, mprime=2*LOS), LOS=LOS, name='S6')
+            s7 = cls(QuadField(nprime=-2, mprime=2*LOS, 
+                    composite='tidal_G2'),
+                LOS=LOS, name='S7')
+            s8 = cls(SumOfQuadFields(quad_fields=[
+                QuadField(nprime=-4, mprime=3*LOS, mprimeprime=LOS),
+                QuadField(n=-2, m=LOS, nprime=-2, mprime=2*LOS, mprimeprime=LOS,
+                    prefactor=2.0)]),
+                LOS=LOS, name='S8')
+            s9 = cls(SumOfQuadFields(quad_fields=[
+                QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, composite='F2'),
+                QuadField(n=-2, m=2*LOS, composite='velocity_G2_par_%s' % LOS_string, 
+                    prefactor=2.0)]),
+                LOS=LOS, name='S9')
+            s10 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS),
+                LOS=LOS, name='S10')
+            s11 = cls(QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+                composite='tidal_G2'), LOS=LOS, name='S11')
+            s12 = cls(SumOfQuadFields(quad_fields=[
+                QuadField(n=-4, m=4*LOS, nprime=-2, mprime=LOS, mprimeprime=LOS),
+                QuadField(n=-2, m=2*LOS, nprime=-4, mprime=3*LOS, mprimeprime=LOS, 
+                    prefactor=2.0)]),
+                LOS=LOS, name='S12')
+            s13 = cls(
+                QuadField(n=-2, m=2*LOS, nprime=-2, mprime=2*LOS, 
+                    composite='velocity_G2_par_%s' % LOS_string),
+                LOS=LOS, name='S13')
+            s14 = cls(
+                QuadField(n=-4, m=3*LOS, nprime=-4, mprime=4*LOS, mprimeprime=LOS),
+                LOS=LOS, name='S14')
+            skew_spectra = [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14]
+
+        else:
+            # 3 real-space skew spectra: Growth, shift, tidal term.
+            s_growth = cls(QuadfField(), name='growth')
+            # (nabla delta).Psi
+            s_shift = cls(SumOfQuadFields(quad_fields=[
+                QuadField(n=0, m=[1,0,0], nprime=-2, mprime=[1,0,0]),
+                QuadField(n=0, m=[0,1,0], nprime=-2, mprime=[0,1,0]),
+                QuadField(n=0, m=[0,0,1], nprime=-2, mprime=[0,0,1])  
+                ]),
+                name='shift')
+            s_tidal_G2 = cls(QuadField(composite='tidal_G2'), name='tidal_G2')
+            skew_spectra = [s_growth, s_shift, s_tidal_G2]
+
         return skew_spectra
 
 

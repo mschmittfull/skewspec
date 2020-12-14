@@ -433,7 +433,8 @@ def main():
         delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
 
     # Compute skew spectra
-    skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(LOS=LOS)
+    skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(
+        LOS=LOS, redshift_space_spectra=True)
     for skew_spec in skew_spectra:
         # compute and store in skew_spec.Pskew
         skew_spec.compute_from_mesh(mesh=delta_mesh_smoothed, 

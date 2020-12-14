@@ -18,19 +18,26 @@ Running
     from skewspec import smoothing
     from skewspec.skew_spectrum import SkewSpectrum
 
-    # Apply smoothing
-    smoothers = [smoothing.GaussianSmoother(R=20.0)]
+    # Given a catalog cat of objects (e.g. halos), paint the overdensity delta
+    # on a 3D mesh using nbodykit.
+    delta_mesh = FieldMesh(cat.to_mesh(Nmesh=Nmesh, BoxSize=BoxSize, 
+        window='cic', interlaced=False, compensated=False).compute()-1)
+
+    # Make a copy of the density and apply Gaussian smoothing
     delta_mesh_smoothed = FieldMesh(delta_mesh.compute(mode='real'))
-    for smoother in smoothers:
-        delta_mesh_smoothed = smoother.apply_smoothing(delta_mesh_smoothed)
+    delta_mesh_smoothed = smoothing.GaussianSmoother(R=20.0).apply_smoothing(
+        delta_mesh_smoothed)
 
     # Compute skew spectra
     LOS = numpy.array([0,0,1])
-    skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(LOS=LOS)
+    skew_spectra = SkewSpectrum.get_list_of_standard_skew_spectra(
+        LOS=LOS, redshift_space_spectra=True)
     for skew_spec in skew_spectra:
         # Compute skew spectrum and store in skew_spec.Pskew
         skew_spec.compute_from_mesh(
-          mesh=delta_mesh_smoothed, third_mesh=delta_mesh)
+          mesh=delta_mesh_smoothed,
+          second_mesh=delta_mesh_smoothed,
+          third_mesh=delta_mesh)
 
 
 
